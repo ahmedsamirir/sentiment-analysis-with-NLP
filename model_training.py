@@ -28,7 +28,7 @@ class SentimentModel(nn.Module):
     def forward(self, x):
         return self.fc(x)
 
-def train_model(X_train, y_train):
+def train_model(X_train, y_train, model_save_path='sentiment_model.pth'):
     vectorizer = TfidfVectorizer(max_features=5000)
     X_train_tfidf = vectorizer.fit_transform(X_train).toarray()
 
@@ -49,6 +49,10 @@ def train_model(X_train, y_train):
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+
+    # Save the model's state dictionary after training
+    torch.save(model.state_dict(), model_save_path)
+    print(f"Model saved to {model_save_path}")
 
     return model, vectorizer
 
