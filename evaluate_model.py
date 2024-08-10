@@ -1,9 +1,9 @@
+import pickle
 import torch
-from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
-from sklearn.feature_extraction.text import TfidfVectorizer
+from torch.utils.data import DataLoader
+from model_training import SentimentDataset, SentimentModel
 from data_preprocessing import load_data, preprocess_data, split_data
-from model_training import SentimentDataset, load_model
 
 def evaluate_model(model, vectorizer, X_test, y_test):
     X_test_tfidf = vectorizer.transform(X_test).toarray()
@@ -11,9 +11,9 @@ def evaluate_model(model, vectorizer, X_test, y_test):
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     all_preds = []
-    model.eval()  # Set the model to evaluation mode
-    with torch.no_grad():  # Disable gradient computation for evaluation
-        for texts, _ in test_loader:
+    model.eval()
+    with torch.no_grad():
+        for texts, labels in test_loader:
             texts = torch.tensor(texts, dtype=torch.float32)
             outputs = model(texts)
             _, preds = torch.max(outputs, 1)
@@ -23,17 +23,21 @@ def evaluate_model(model, vectorizer, X_test, y_test):
     return accuracy
 
 if __name__ == "__main__":
-    # Load the saved model
-    model_save_path = 'sentiment_model.pth'
-    loaded_model = load_model(model_save_path=model_save_path)
-
-    # Load and preprocess data (assuming the same preprocess and split functions from previous scripts)
+    # Load and preprocess data
     df = load_data()
     df = preprocess_data(df)
-    _, X_test, _, y_test = split_data(df)
+    X_train, X_test, y_train, y_test = split_data(df)
+
+    # Load the saved model
+    input_dim = 5000  # Ensure this matches what was used during training
+    hidden_dims = [512]  # Ensure this matches what was used during training
+    best_model = SentimentModel(input_dim=input_dim, hidden_dims=hidden_dims)
+    best_model.load_state_dict(torch.load("best_sentiment_model.pth"))
+
+    # Load the saved vectorizer
+    with open("best_vectorizer.pkl", "rb") as f:
+        vectorizer = pickle.load(f)
 
     # Evaluate the model
-    vectorizer = TfidfVectorizer(max_features=5000)
-    vectorizer.fit(df['text'])  # Fit the vectorizer on the full dataset text
-    accuracy = evaluate_model(loaded_model, vectorizer, X_test, y_test)
-    print(f"Model accuracy on test data: {accuracy:.2f}")
+    accuracy = evaluate_model(best_model, vectorizer, X_test, y_test)
+    print(f"Test Accuracy: {accuracy}")
