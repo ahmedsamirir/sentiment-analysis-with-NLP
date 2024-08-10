@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # Load and preprocess data
     df = load_data()
     df = preprocess_data(df)
-    X_train, X_test, y_train, y_test = split_data(df)
+    X_train, _, y_train, _ = split_data(df)
 
     # Train the model
     model, vectorizer = train_model(X_train, y_train)
