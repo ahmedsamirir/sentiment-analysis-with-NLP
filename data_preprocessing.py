@@ -14,4 +14,5 @@ def preprocess_data(df):
 
 def split_data(df):
     X_train, X_test, y_train, y_test = train_test_split(df['text'], df['label'], test_size=0.2, random_state=42)
-    return X_train, X_test, y_train, y_test
+    return X_train.reset_index(drop=True), X_test.reset_index(drop=True), y_train.reset_index(drop=True), y_test.reset_index(drop=True)
+
