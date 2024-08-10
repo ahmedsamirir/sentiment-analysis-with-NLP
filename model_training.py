@@ -56,6 +56,12 @@ def train_model(X_train, y_train, model_save_path='sentiment_model.pth'):
 
     return model, vectorizer
 
+def load_model(model_save_path='sentiment_model.pth', input_dim=5000):
+    model = SentimentModel(input_dim=input_dim)
+    model.load_state_dict(torch.load(model_save_path))
+    model.eval()  # Set the model to evaluation mode
+    return model
+
 if __name__ == "__main__":
     # Load and preprocess data
     df = load_data()
